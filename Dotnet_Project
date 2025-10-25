@@ -1,0 +1,16 @@
+FROM ubuntu:24.04 AS dotstageone
+RUN apt update -y && \
+apt install git -y && \
+git clone https://github.com/nopSolutions/nopCommerce.git
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS dotbuild
+COPY --from=dotstageone /nopCommerce /app
+WORKDIR /app
+RUN dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o /shaik
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS dotruntime
+COPY --from=dotbuild /shaik /new
+WORKDIR /new
+ENV ASPNETCORE_URLS=http://0.0.0.0:5000
+EXPOSE 5000
+CMD [ "dotnet","Nop.Web.dll" ]
