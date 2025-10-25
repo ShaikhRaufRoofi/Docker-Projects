@@ -1,0 +1,20 @@
+FROM ubuntu:24.04 AS spcstageone
+RUN apt update -y && \
+apt install git -y && \
+git clone https://github.com/spring-projects/spring-petclinic.git
+
+FROM maven:3.9.11-eclipse-temurin-25-alpine AS spcstagetwo
+COPY --from=spcstageone spring-petclinic /spcapp
+WORKDIR /spcapp
+RUN mvn package
+
+FROM eclipse-temurin:17.0.16_8-jre-noble  AS spcstagethree
+LABEL projects="JAVA_PROJECT"
+LABEL AUTHOR="SHAIK"
+ARG username=AWS
+RUN useradd -m -d /user/share/devops -s /bin/sh ${username}
+USER ${username}
+COPY --from=spcstagetwo spcapp/target/*.jar newspcweb.jar
+EXPOSE 8080
+CMD [ "java","-jar","newspcweb.jar" ]
+
