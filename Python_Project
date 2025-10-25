@@ -1,0 +1,15 @@
+FROM ubuntu:24.04 AS qxone
+RUN apt update -y && \
+apt install git -y && \
+git clone https://github.com/ShaikhRaufRoofi/EC2-Neon-Pulse_Dashboard.git
+
+
+FROM python:3.12-slim AS qxtwo
+LABEL project="pythonproject"
+LABEL author="SK Rauf Roofi"
+COPY --from=qxone EC2-Neon-Pulse_Dashboard  /app
+WORKDIR /app
+RUN pip install --no-cache-dir -r requirements.txt
+EXPOSE 5001
+CMD [ "python3","app.py" ]
+
